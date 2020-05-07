@@ -37,20 +37,19 @@ public:
 
     manager() = delete;
 
-    explicit manager(int a)noexcept ;
+    explicit manager(int a) noexcept;
 
     int add_jobs(job *j);
 
     bool job_empty() const;
 
-    ~manager() = default;
+    ~manager();
 
     queue<job *> jobs;
 private:
     mutex mtx;
     condition_variable cond;
     vector<worker *> workers;
-
     const int thread_num;
 };
 
@@ -66,7 +65,9 @@ public:
     void stopWorking();
 
     ~worker() {
-        cout<<"worker is gone"<<endl;
+        if (thrd->joinable())
+            thrd->join();
+        cout << "worker is gone" << endl;
     };
 
 private:
@@ -78,7 +79,7 @@ private:
 worker::worker(mutex &m, condition_variable &cond, manager *Manager) : myManager(Manager), isWorking(true) {
     thrd = new thread(&worker::working, ref(*this), ref(m), ref(cond));
     thrd->detach();
-    cout<<"thread is working "<<endl;
+    cout << "thread is working " << endl;
 }
 
 void worker::working(mutex &m, condition_variable &cond) {
@@ -94,7 +95,6 @@ void worker::working(mutex &m, condition_variable &cond) {
         }
         job tmp = *(myManager->jobs.front());
         myManager->jobs.pop();
-        cout << myManager->jobs.size() << endl;
         gurad.unlock();
         tmp.job_call_back();
     }
@@ -106,10 +106,10 @@ void worker::stopWorking() {
 }
 
 
-manager::manager(int a) noexcept : thread_num(a) {
+manager::manager(int a) noexcept: thread_num(a) {
     try {
-        for(;a>0;a--){
-            worker *tmp=new worker(mtx, cond, this);
+        for (; a > 0; a--) {
+            worker *tmp = new worker(mtx, cond, this);
             workers.push_back(tmp);
         }
     } catch (exception &E) {
@@ -133,9 +133,18 @@ bool manager::job_empty() const {
     return jobs.empty();
 }
 
+manager::~manager() {
+    for(auto w:workers){
+        w->stopWorking();
+    }
+    cond.notify_all();
+    for(auto w:workers)
+        delete w;
+}
+
 
 void job::job_call_back() noexcept {
-    cout << "job call back" << endl;
+//    cout << "job call back" << endl;
     try {
         func(data);
     } catch (exception &E) {
