@@ -1,9 +1,3 @@
-/*
- * Created by wang xy
- * Date: 2020/5/5
- * description:
- */
-
 #include <iostream>
 #include <queue>
 #include <mutex>
@@ -55,7 +49,7 @@ public:
 private:
     mutex mtx;
     condition_variable cond;
-    queue<worker *> workers;
+    vector<worker *> workers;
 
     const int thread_num;
 };
@@ -83,21 +77,22 @@ worker::worker(mutex &m, condition_variable &cond, manager *Manager) : myManager
 }
 
 void worker::working(mutex &m, condition_variable &cond) {
-    cout << "working "  << endl;//this_thread::get_id()
+    cout << "working "  <<this_thread::get_id()<< endl;//this_thread::get_id()
     while (isWorking) {
-        cout<<"log1"<<endl;
+
         unique_lock<mutex> gurad(m);
-        cout<<"log2"<<endl;
         cond.wait(gurad, [this] {
             return !myManager->job_empty();
         });
-        cout<<"log3"<<endl;
+        if(!isWorking){
+            gurad.unlock();
+            break;
+        }
         job tmp = *(myManager->jobs.front());
         myManager->jobs.pop();
         cout<<myManager->jobs.size()<<endl;
         gurad.unlock();
         tmp.job_call_back();
-        cout<<"log5"<<endl;
     }
 
 }
@@ -107,8 +102,7 @@ manager::manager(int a) : thread_num(a) {
     try {
         for (; a > 0; a--) {
             worker *p = new worker(mtx, cond, this);
-            cout<<"log4"<<endl;
-            workers.push(p);
+            workers.push_back(p);
         }
     } catch (exception &E) {
         cout << E.what() << endl;

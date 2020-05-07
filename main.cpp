@@ -5,9 +5,10 @@
 using namespace std;
 void* function(void *data){
     int num= *reinterpret_cast<int*>(data);
-    cout<<num<<endl;
+    cout<<"NUM "<<num<<"  "<<this_thread::get_id()<<endl;
     return data;
 }
+
 int main() {
     manager A(2);
     int tmp[20];
@@ -17,7 +18,7 @@ int main() {
         job *j=new job(function,data);
         A.add_jobs(j);
     }
-    chrono::seconds dura(5000000);
+    chrono::seconds dura(500);
     this_thread::sleep_for(dura);
     return 0;
 }
