@@ -1,3 +1,4 @@
+[原文请见csdn：实现小型线程池](https://blog.csdn.net/weixin_43594564/article/details/105970154)
 ## 1. 线程池的优势
 线程过多会带来调度开销，进而影响缓存局部性和整体性能。而线程池维护着多个线程，等待着监督管理者分配可并发执行的任务。因此线程池有以下优势：
 1. 重用已存在的线程、降低系统资源消耗、降低线程创建和销毁的开销；
@@ -291,4 +292,5 @@ thread is working
 [完整代码连接(求star)](https://github.com/THREEBBOX/Tiny-ThreadPool)
 ## 参考视频
 [手撕线程池](https://www.bilibili.com/video/BV1Ez411b7cc)
+
 [C++多线程](https://www.bilibili.com/video/BV1Yb411L7ak?p=15)
